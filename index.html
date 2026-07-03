@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Saúde 360">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1565c0">
+<meta name="description" content="Boas práticas, CIAP-2, CID-10 e SIGTAP para Atenção Primária à Saúde">
+<title>Saúde Brasil 360</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --azul: #1565c0;
+    --azul-claro: #1e88e5;
+    --azul-fundo: #e8f0fe;
+    --verde: #00897b;
+    --cinza-fundo: #f4f6fb;
+    --cinza-borda: #dde3ee;
+    --texto: #1a1f36;
+    --texto-suave: #5a6380;
+    --branco: #ffffff;
+    --sombra: 0 2px 12px rgba(21,101,192,.10);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--cinza-fundo);
+    color: var(--texto);
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--azul);
+    color: var(--branco);
+    padding: 52px 20px 20px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
+  }
+  header h1 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: .5px;
+  }
+  header p {
+    font-size: 11px;
+    opacity: .75;
+    margin-top: 4px;
+    letter-spacing: .3px;
+  }
+
+  /* GRID DE CARDS */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 18px 14px;
+  }
+
+  .card {
+    background: var(--branco);
+    border-radius: 16px;
+    padding: 20px 12px 18px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: var(--sombra);
+    border: 1.5px solid var(--cinza-borda);
+    transition: transform .13s, box-shadow .13s;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .card:active {
+    transform: scale(.96);
+    box-shadow: 0 1px 4px rgba(21,101,192,.08);
+  }
+  .card .icon {
+    font-size: 42px;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--azul);
+    line-height: 1.3;
+  }
+
+  /* BOTTOM SHEET MODAL */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 100;
+    transition: opacity .2s;
+  }
+  .overlay.ativo { display: block; }
+
+  .sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--branco);
+    border-radius: 22px 22px 0 0;
+    max-height: 88vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    z-index: 200;
+    transform: translateY(100%);
+    transition: transform .28s cubic-bezier(.32,.72,0,1);
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+  .sheet.ativo { transform: translateY(0); }
+
+  .sheet-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--cinza-borda);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+
+  .sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid var(--cinza-borda);
+    position: sticky;
+    top: 0;
+    background: var(--branco);
+    z-index: 1;
+  }
+  .sheet-titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sheet-titulo .s-icon { font-size: 26px; }
+  .sheet-titulo h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--texto);
+  }
+  .btn-fechar {
+    width: 30px;
+    height: 30px;
+    background: var(--cinza-fundo);
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    color: var(--texto-suave);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 0;
+    border-bottom: 1px solid var(--cinza-borda);
+    padding: 0 16px;
+    background: var(--branco);
+    position: sticky;
+    top: 65px;
+    z-index: 1;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: none;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--texto-suave);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color .15s, border-color .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab.ativo {
+    color: var(--azul);
+    border-bottom-color: var(--azul);
+  }
+
+  /* CONTEÚDO DAS TABS */
+  .tab-content {
+    padding: 18px 18px 8px;
+    display: none;
+  }
+  .tab-content.ativo { display: block; }
+
+  /* BOAS PRÁTICAS */
+  .pratica-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--cinza-borda);
+  }
+  .pratica-item:last-child { border-bottom: none; }
+  .check {
+    width: 22px;
+    height: 22px;
+    background: var(--azul-fundo);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .check span { font-size: 12px; }
+  .pratica-item p {
+    font-size: 14px;
+    color: var(--texto);
+    line-height: 1.45;
+  }
+
+  /* TAGS CIAP/CID/SIGTAP */
+  .codigo-lista { display: flex; flex-direction: column; gap: 10px; }
+  .codigo-item {
+    background: var(--cinza-fundo);
+    border-radius: 10px;
+    padding: 11px 14px;
+    border-left: 3px solid var(--azul-claro);
+  }
+  .codigo-item .codigo-tag {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--azul-claro);
+    letter-spacing: .4px;
+    margin-bottom: 2px;
+  }
+  .codigo-item .codigo-desc {
+    font-size: 14px;
+    color: var(--texto);
+  }
+  .sigtap-item {
+    background: var(--cinza-fundo);
+    border-radius: 10px;
+    padding: 11px 14px;
+    border-left: 3px solid var(--verde);
+    margin-bottom: 10px;
+  }
+  .sigtap-item .sigtap-tag {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--verde);
+    margin-bottom: 2px;
+  }
+  .sigtap-item .sigtap-num {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--texto);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .5px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏥 SAÚDE BRASIL 360</h1>
+  <p>Boas práticas · CIAP-2 · CID-10 · SIGTAP</p>
+</header>
+
+<div class="grid">
+  <div class="card" onclick="abrir('hipertensao')">
+    <span class="icon">❤️</span>
+    <h3>Hipertensão</h3>
+  </div>
+  <div class="card" onclick="abrir('diabetes')">
+    <span class="icon">🩸</span>
+    <h3>Diabetes</h3>
+  </div>
+  <div class="card" onclick="abrir('gestante')">
+    <span class="icon">🤰</span>
+    <h3>Gestante e Puérpera</h3>
+  </div>
+  <div class="card" onclick="abrir('crianca')">
+    <span class="icon">👶</span>
+    <h3>Desenvolvimento Infantil</h3>
+  </div>
+  <div class="card" onclick="abrir('mulher')">
+    <span class="icon">👩</span>
+    <h3>Saúde da Mulher</h3>
+  </div>
+  <div class="card" onclick="abrir('idoso')">
+    <span class="icon">👴</span>
+    <h3>Idoso</h3>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="fechar()"></div>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-titulo">
+      <span class="s-icon" id="s-icon"></span>
+      <h2 id="s-titulo"></h2>
+    </div>
+    <button class="btn-fechar" onclick="fechar()">✕</button>
+  </div>
+  <div class="tabs">
+    <button class="tab ativo" onclick="trocarTab('boas', this)">✅ Boas práticas</button>
+    <button class="tab" onclick="trocarTab('ciap', this)">🔵 CIAP-2</button>
+    <button class="tab" onclick="trocarTab('cid', this)">🟣 CID-10</button>
+    <button class="tab" onclick="trocarTab('sigtap', this)">🟢 SIGTAP</button>
+  </div>
+  <div class="tab-content ativo" id="tab-boas"></div>
+  <div class="tab-content" id="tab-ciap"></div>
+  <div class="tab-content" id="tab-cid"></div>
+  <div class="tab-content" id="tab-sigtap"></div>
+</div>
+
+<script>
+const dados = {
+  hipertensao: {
+    titulo: 'Hipertensão', icon: '❤️',
+    boas: [
+      '2 consultas médicas ou de enfermagem sendo uma a cada 6 meses',
+      '2 aferições de PA sendo uma a cada 6 meses',
+      '2 registros de peso e altura sendo um a cada 6 meses',
+      '2 visitas domiciliares ACS/TACS, sendo uma a cada 6 meses, com intervalo mínimo de 30 dias'
+    ],
+    ciap: [
+      { cod: 'K85', desc: 'Pressão arterial elevada' },
+      { cod: 'K86', desc: 'Hipertensão sem complicações' },
+      { cod: 'K87', desc: 'Hipertensão com complicações' }
+    ],
+    cid: [
+      { cod: 'I10', desc: 'Hipertensão essencial' },
+      { cod: 'I11', desc: 'Doença cardíaca hipertensiva' },
+      { cod: 'I12', desc: 'Doença renal hipertensiva' },
+      { cod: 'I13', desc: 'Doença cardíaca e renal hipertensiva' },
+      { cod: 'I15', desc: 'Hipertensão secundária' }
+    ],
+    sigtap: [{cod:'0301010064',desc:'Consulta de profissional de nível superior na Atenção Primária'},{cod:'0301010030',desc:'Consulta de profissional de nível médio na Atenção Primária'}]
+  },
+  diabetes: {
+    titulo: 'Diabetes', icon: '🩸',
+    boas: [
+      '2 consultas médicas ou de enfermagem sendo uma a cada 6 meses',
+      '2 aferições de PA sendo uma a cada 6 meses',
+      '2 registros de peso e altura sendo um a cada 6 meses',
+      '1 solicitação de hemoglobina glicosilada a cada 12 meses',
+      '1 exame do pé diabético',
+      '2 visitas domiciliares ACS/TACS, sendo uma a cada 6 meses, com intervalo mínimo de 30 dias'
+    ],
+    ciap: [
+      { cod: 'T89', desc: 'Diabetes insulino-dependente' },
+      { cod: 'T90', desc: 'Diabetes não insulino-dependente' },
+      { cod: 'W85', desc: 'Diabetes gestacional' }
+    ],
+    cid: [
+      { cod: 'E10', desc: 'Diabetes mellitus tipo 1' },
+      { cod: 'E11', desc: 'Diabetes mellitus tipo 2' },
+      { cod: 'E12', desc: 'Diabetes associado à desnutrição' },
+      { cod: 'E13', desc: 'Outros diabetes especificados' },
+      { cod: 'E14', desc: 'Diabetes não especificado' },
+      { cod: 'O24', desc: 'Diabetes na gravidez' }
+    ],
+    sigtap: [{cod:'0301010064',desc:'Consulta de profissional de nível superior na Atenção Primária'},{cod:'0301010030',desc:'Consulta de profissional de nível médio na Atenção Primária'}]
+  },
+  gestante: {
+    titulo: 'Gestante e Puérpera', icon: '🤰',
+    boas: [
+      'Inicio do Pré-natal até 12 semanas',
+      '7 consultas enfermeiro ou médico na gestação',
+      '7 registros de PA',
+      '7 registros de peso e altura',
+      '3 visitas ACS/TACS, com intervalo mínimo de 30 dias',
+      'Registro de vacina dTpa após a 20ª semana',
+	  'Registro de vacina da bronquiolite na 28ª semana',
+      'Testes rápidos no 1º e 3º trimestre',
+      'Avaliação odontológica na gestação',
+	  'Consulta e visita no puerpério'
+	],
+	
+    ciap: [
+      { cod: 'W78', desc: 'Gravidez' },
+      { cod: 'W81', desc: 'Toxemia gravídica' },
+      { cod: 'W84', desc: 'Gravidez de alto risco' }
+    ],
+    cid: [
+      { cod: 'Z34', desc: 'Supervisão de gravidez normal' },
+      { cod: 'Z35', desc: 'Supervisão de gravidez de alto risco' },
+      { cod: 'Z39', desc: 'Assistência pós-parto' },
+      { cod: 'O13', desc: 'Hipertensão gestacional' },
+      { cod: 'O14', desc: 'Pré-eclâmpsia' }
+    ],
+    sigtap: [{cod:'Consultas APS',desc:'Consultas de pré-natal na Atenção Primária'},{cod:'Exames do pré-natal',desc:'Exames laboratoriais e complementares do pré-natal'}]
+  },
+  crianca: {
+    titulo: 'Desenvolvimento Infantil', icon: '👶',
+    boas: [
+      '1ª consulta e cadastro até 30 dias de vida',
+      '9 consultas até os 2 anos',
+      '9 registros de peso e altura',
+      '2 visitas domiciliares',
+      'Esquema vacinal completo'
+    ],
+    ciap: [
+      { cod: 'A93', desc: 'Recém-nascido prematuro' },
+      { cod: 'A94', desc: 'Morbidade perinatal' },
+      { cod: 'A98', desc: 'Medicina preventiva' }
+    ],
+    cid: [
+      { cod: 'Z00', desc: 'Exame geral' },
+      { cod: 'Z00.1', desc: 'Exame de rotina da criança' },
+      { cod: 'Z76.2', desc: 'Supervisão da saúde da criança' },
+      { cod: 'P05', desc: 'Crescimento fetal retardado' },
+      { cod: 'P07', desc: 'Prematuridade' }
+    ],
+    sigtap: [{cod:'0301010269',desc:'Consulta de puericultura'},{cod:'0301010277',desc:'Acompanhamento do crescimento e desenvolvimento'}]
+  },
+  mulher: {
+    titulo: 'Saúde da Mulher', icon: '👩',
+    boas: [
+      'Citopatológico 25–64 anos em 36 meses',
+      'Vacina HPV 9–14 anos',
+      'Atendimento de saúde sexual e reprodutiva, a partir dos 14 anos',
+      'Mamografia 50–69 anos em 24 meses'
+    ],
+    ciap: [
+      { cod: 'X13', desc: 'Planejamento familiar feminino' },
+      { cod: 'Y14', desc: 'Planejamento familiar masculino' },
+      { cod: 'X37', desc: 'Papanicolau alterado' }
+    ],
+    cid: [
+      { cod: 'C50', desc: 'Neoplasia maligna da mama' },
+      { cod: 'C53', desc: 'Neoplasia maligna do colo uterino' },
+      { cod: 'R87', desc: 'Achados anormais do colo uterino' }
+    ],
+    sigtap: [{cod:'0203010019',desc:'Exame citopatológico do colo do útero'},{cod:'0203010086',desc:'Coleta de material para citopatológico'},{cod:'0204030030',desc:'Mamografia bilateral para rastreamento'},{cod:'0204030188',desc:'Mamografia diagnóstica'}]
+  },
+  idoso: {
+    titulo: 'Idoso', icon: '👴',
+    boas: [
+      '1 consulta em 12 meses',
+      '1 registro simultâneo de peso e altura',
+      '1 registro da dose de influenza',
+      '2 visitas domiciliares ACS/TACS'
+    ],
+    ciap: [
+      { cod: 'P05', desc: 'Senilidade' },
+      { cod: 'A98', desc: 'Medicina preventiva' }
+    ],
+    cid: [
+      { cod: 'R54', desc: 'Senilidade' },
+      { cod: 'Z00', desc: 'Exame geral' },
+      { cod: 'Z71', desc: 'Aconselhamento' }
+    ],
+    sigtap: [{cod:'0301010064',desc:'Consulta de profissional de nível superior na Atenção Primária'},{cod:'0301010030',desc:'Consulta de profissional de nível médio na Atenção Primária'}]
+  }
+};
+
+function abrir(chave) {
+  const d = dados[chave];
+  document.getElementById('s-titulo').textContent = d.titulo;
+  document.getElementById('s-icon').textContent = d.icon;
+
+  // Boas práticas
+  document.getElementById('tab-boas').innerHTML =
+    '<div class="codigo-lista" style="display:flex;flex-direction:column;gap:0">' +
+    d.boas.map(b => `
+      <div class="pratica-item">
+        <div class="check"><span>✔</span></div>
+        <p>${b}</p>
+      </div>`).join('') + '</div>';
+
+  // CIAP-2
+  document.getElementById('tab-ciap').innerHTML =
+    '<div class="codigo-lista">' +
+    d.ciap.map(c => `
+      <div class="codigo-item">
+        <div class="codigo-tag">${c.cod}</div>
+        <div class="codigo-desc">${c.desc}</div>
+      </div>`).join('') + '</div>';
+
+  // CID-10
+  document.getElementById('tab-cid').innerHTML =
+    '<div class="codigo-lista">' +
+    d.cid.map(c => `
+      <div class="codigo-item">
+        <div class="codigo-tag">${c.cod}</div>
+        <div class="codigo-desc">${c.desc}</div>
+      </div>`).join('') + '</div>';
+
+  // SIGTAP
+  document.getElementById('tab-sigtap').innerHTML =
+    d.sigtap.map(s => `<div class="sigtap-item"><div class="sigtap-tag">${s.cod}</div><div class="codigo-desc">${s.desc}</div></div>`).join('');
+
+  // Resetar para primeira tab
+  trocarTabPorId('boas');
+
+  document.getElementById('overlay').classList.add('ativo');
+  document.getElementById('sheet').classList.add('ativo');
+  document.body.style.overflow = 'hidden';
+}
+
+function fechar() {
+  document.getElementById('overlay').classList.remove('ativo');
+  document.getElementById('sheet').classList.remove('ativo');
+  document.body.style.overflow = '';
+}
+
+function trocarTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('ativo'));
+  btn.classList.add('ativo');
+  document.getElementById('tab-' + id).classList.add('ativo');
+}
+
+function trocarTabPorId(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('ativo'));
+  document.querySelectorAll('.tab')[0].classList.add('ativo');
+  document.getElementById('tab-boas').classList.add('ativo');
+}
+
+// Registro do Service Worker para funcionamento offline (PWA)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker registrado:', reg.scope))
+      .catch(err => console.log('Falha ao registrar Service Worker:', err));
+  });
+}
+</script>
+</body>
+</html>
